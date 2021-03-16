@@ -33,8 +33,11 @@
   
   //$channelId = 'I63.2.34788.tvguide.com';
   $datetime1 = new DateTime('now', new DateTimezone('America/New_York'));
-  $minutesSeconds = $datetime1->format('i') >= 30 ? '3000' : '0000';
-  $datetime1 = $datetime1->format("YmdH$minutesSeconds -0500");
+  $minutesSeconds = $datetime1->format('i') >= 30 ? '3000' : '0000';  
+  $datetime1 = $datetime1->format("YmdH$minutesSeconds P");
+  
+  echo $datetime1; 
+  exit;
   
   // insert datetime from past/future tv program
   if(php_sapi_name() !== 'cli'){
@@ -110,7 +113,12 @@
   echo "video file: ".$videoFile.'<br>';
   $cmd = "D:/ffmpeg.exe -y -i \"".$argv[1].$argv[2]."\" -c copy -t ".$duration . " " . $videoFile. " 2>&1";
 
-  echo("Running command: " . $cmd . '<br>');
+  if(in_array($programTitle,$skipPrograms)){
+    echo "Skipping program \"".$programTitle."\" in skip programs array: ".json_encode($skipPrograms,JSON_PRETTY_PRINT).'<br>';
+  }
+  else{
+    echo("Running command: " . $cmd . '<br>');    
+  }  
   
   if(php_sapi_name() !== 'cli'){
       exit;
