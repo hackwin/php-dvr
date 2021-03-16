@@ -36,8 +36,8 @@
   $minutesSeconds = $datetime1->format('i') >= 30 ? '3000' : '0000';  
   $datetime1 = $datetime1->format("YmdH$minutesSeconds P");
   
-  echo $datetime1; 
-  exit;
+  //echo $datetime1; 
+  //exit;
   
   // insert datetime from past/future tv program
   if(php_sapi_name() !== 'cli'){
