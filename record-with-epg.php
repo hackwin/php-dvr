@@ -6,8 +6,8 @@
   $skipPrograms = array();
   
   if(php_sapi_name() !== 'cli'){
-    //$argv = array(null,"http://10.0.0.2:5004/auto/v","63.2","00:30:00","quest-channel","13");
-    $argv = array(null,"http://10.0.0.2:5004/auto/v","68.3","00:30:00","gettv-channel","5");
+    $argv = array(null,"http://10.0.0.2:5004/auto/v","63.2","00:30:00","quest-channel","13");
+    //$argv = array(null,"http://10.0.0.2:5004/auto/v","68.3","00:30:00","gettv-channel","5");
     //$argv = array(null,"http://10.0.0.2:5004/auto/v","21.2","00:30:00","pbs-channel","4");
   }
   else{
@@ -34,9 +34,9 @@
   //$channelId = 'I63.2.34788.tvguide.com';
   $datetime1 = new DateTime('now', new DateTimezone('America/New_York'));
   $minutesSeconds = $datetime1->format('i') >= 30 ? '3000' : '0000';  
-  $datetime1 = $datetime1->format("YmdH$minutesSeconds P");
+  $datetime1 = $datetime1->format("YmdH$minutesSeconds O");
   
-  //echo $datetime1; 
+  //echo $datetime1; // 2021 03 17 19 30 00 -0400
   //exit;
   
   // insert datetime from past/future tv program
@@ -62,6 +62,8 @@
           if(php_sapi_name() !== 'cli'){
              //echo '<pre>'.print_r($xml->programme[$i],true).'</pre>';
           }
+          
+          //echo $xml->programme[$i]['start'] . '<br>' . $datetime1 . '<br><br>';
           
           if((string)$xml->programme[$i]['start'] == $datetime1){
              echo 'program found! took '.number_format(microtime(true)-$startTime,2).' seconds<br>';
