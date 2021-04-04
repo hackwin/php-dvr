@@ -6,27 +6,60 @@
   $skipPrograms = array();
   
   if(php_sapi_name() !== 'cli'){
-    $argv = array(null,"http://10.0.0.2:5004/auto/v","63.2","00:30:00","quest-channel","13");
-    //$argv = array(null,"http://10.0.0.2:5004/auto/v","68.3","00:30:00","gettv-channel","5");
-    //$argv = array(null,"http://10.0.0.2:5004/auto/v","21.2","00:30:00","pbs-channel","4");
+    //$argv = array(null,"atsc","http://10.0.0.2:5004/auto/v","63.2","00:30:00","quest-channel","13");
+    //$argv = array(null,"atsc","http://10.0.0.2:5004/auto/v","68.3","00:30:00","gettv-channel","5");
+    //$argv = array(null,"atsc","http://10.0.0.2:5004/auto/v","21.2","00:30:00","pbs-channel","4");
+    $argv = array(null,"fios","http://10.0.0.168/0.ts","auto","00:30:00","fios","5");
   }
   else{
       ob_start();
   }
   
-  if(count($argv) < 6){
-      die('needs 5 arguments: url, channel, time, folder prefix, seconds to trim');
+  if(count($argv) < 7){
+      die('needs 6 arguments: source, url, channel, time, folder prefix, seconds to trim');
   }
   
-  $xml = simplexml_load_file('D:/atsctv.xml');
+  if($argv[1] == "atsc"){
+      $urlParts = parse_url($argv[2]);
+      ini_set('default_socket_timeout', 2);
+      @$pageResults = file_get_contents($urlParts['scheme'].'://'.$urlParts['host']);
+      if(strstr($pageResults, 'HDHomeRun CONNECT QUATRO') === false){
+        echo 'could not find index page of tuner! server down or on another IP address?<br>';
+      }
+      else{
+        echo 'found tuner web page!<br>';
+      }
+      $xml = simplexml_load_file('D:/atsctv.xml');
+  }
+  else if($argv[1] == "fios"){
+      $xml = simplexml_load_file('D:/fiostv.xml');
+  }
+  
   //echo '<pre>'.print_r($xml,true).'</pre>';'
   
-  $channelId = ''; 
+  $channelId = '';
+  $channelName = '';
+  if($argv[3] == "auto"){
+    $temp = intval(file_get_contents('D:/currentFiosChannel.txt'));
+    if(is_integer($temp)){
+        $argv[3] = $temp;
+    }
+  }
+  
   foreach($xml->channel as $key => $channel){
-      if($channel->{'display-name'}[1] == $argv[2]){ //63.2
+      if($channel->{'display-name'}[1] == $argv[3]){ //63.2
         $channelId = $channel['id'];
+        $channelName = (string)$channel->{'display-name'}[2];
         break;
       }
+  }
+
+  echo "Channel name found: ".$channelName.'<br>';
+  
+  $fiosChannelMap = json_decode(file_get_contents('D:/fiosChannelMap.json'),true);
+  if(array_key_exists($channelName, $fiosChannelMap)){
+      $channelName = $fiosChannelMap[$channelName];
+      echo "Channel name alias found: ".$channelName.'<br>';
   }
   
   echo "Channel ID found: ".$channelId.'<br>';
@@ -41,7 +74,7 @@
   
   // insert datetime from past/future tv program
   if(php_sapi_name() !== 'cli'){
-    //$datetime1 = '20210222010000 -0500';
+    //$datetime1 = '20210402140000 -0500';
   }
   echo 'TV show half-hour date-time: '.$datetime1.'<br>'; // 8:31PM => 8:30pm, 9:01AM => 9:00am
   //2021 02 20 20 30 00 -0500
@@ -73,8 +106,8 @@
              $duration = gmdate('H:i:s', abs(strtotime(substr($xml->programme[$i]['stop'], 0, 14)) - strtotime(substr($xml->programme[$i]['start'], 0, 14))));
              echo 'duration: '.$duration.'<br>';
              $seconds = explode(':',$duration);
-             $seconds = $seconds[0]*60*60+$seconds[1]*60+$seconds[2] - $argv[5];
-             echo 'start delay: '.$argv[5].'<br>';
+             $seconds = $seconds[0]*60*60+$seconds[1]*60+$seconds[2] - $argv[6];
+             echo 'start delay: '.$argv[6].'<br>';
              echo 'duration in seconds: '.$seconds.'<br>';
              $trimSeconds = 10;
              echo 'trim duration by seconds: '.$trimSeconds.'<br>';
@@ -94,26 +127,29 @@
   $datetime = new DateTime('now', new DateTimezone('America/New_York'));
   $datetime = $datetime->format('Y-m-d_g-iA');
 
+  if($argv[1] == 'fios'){
+      $programTitle = $channelName . '-' . $programTitle;
+  }
   $programTitle = preg_replace('/[^-A-Za-z0-9&, \']/', '-', $programTitle);
   $episodeTitle = preg_replace('/[^-A-Za-z0-9&, \']/', '_', $episodeTitle);
   
-  $folder = 'D:/'.$argv[4].'/'.$programTitle.'/';
-  if(!file_exists($folder)){
+  $folder = 'D:/'.$argv[5].'/'.$programTitle.'/';
+  if(php_sapi_name() === 'cli' && !file_exists($folder)){
     mkdir($folder,0777,true);
   }
 
   if($duration == ''){
-      $duration = $argv[3];
+      $duration = $argv[4];
   }
   if($programTitle != '' && $episodeTitle != ''){ // exclude date-time if program and episode title are found
-    $videoFile = "\"D:/".$argv[4].'/'.$programTitle.'/'.$seasonEpisode.' - '.$episodeTitle.".mp4\"";    
+    $videoFile = "\"D:/".$argv[5].'/'.$programTitle.'/'.$seasonEpisode.' - '.$episodeTitle.".mp4\"";    
   }
   else{
-    $videoFile = "\"D:/".$argv[4].'/'.$programTitle.'/'.$datetime.".mp4\"";
+    $videoFile = "\"D:/".$argv[5].'/'.$programTitle.'/'.$datetime.".mp4\"";
   }
   
   echo "video file: ".$videoFile.'<br>';
-  $cmd = "D:/ffmpeg.exe -y -i \"".$argv[1].$argv[2]."\" -c copy -t ".$duration . " " . $videoFile. " 2>&1";
+  $cmd = "D:/ffmpeg.exe -y -i \"".$argv[2].(($argv[1] == 'atsc')?$argv[3]:'')."\" -c copy -t ".$duration . " " . $videoFile. " 2>&1";
 
   if(in_array($programTitle,$skipPrograms)){
     echo "Skipping program \"".$programTitle."\" in skip programs array: ".json_encode($skipPrograms,JSON_PRETTY_PRINT).'<br>';
