@@ -2,7 +2,7 @@
 PHP Digital Video Recorder
 
 # hardware
-* hdhomerun quatro 4x tuner (for atsc)
+* <a href="https://www.amazon.com/SiliconDust-HDHR5-4US-HDHomeRun-Connect-4-Tuner/dp/B078LH47CD">hdhomerun quatro 4x tunerA</a> (for atsc)
 * hdmi network stream encoder (for cable tv)
 * esp8266 pair for re-transmitting the IR remote signal
 
