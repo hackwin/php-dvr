@@ -10,3 +10,4 @@ PHP Digital Video Recorder
 1. The program zap2xml is scheduled to download XML electronic programming guides (EPG) every day.  It fetches two days worth of data at a time.
 2. The video gets recorded using Task Scheduler which runs a php script that runs ffmpeg.
 3. PHP refers to the XML EPG to get the correct program and episode information to be used for Folder and File names.
+4. The cable TV tuner current channel is stored in a text file on a web server.  Channels are changed through a web interface which logs the channel changed.
