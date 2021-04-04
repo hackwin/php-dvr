@@ -2,9 +2,9 @@
 PHP Digital Video Recorder
 
 # hardware
-* <a href="https://www.amazon.com/SiliconDust-HDHR5-4US-HDHomeRun-Connect-4-Tuner/dp/B078LH47CD">hdhomerun quatro 4x tunerA</a> (for atsc)
+* <a href="https://www.amazon.com/SiliconDust-HDHR5-4US-HDHomeRun-Connect-4-Tuner/dp/B078LH47CD">hdhomerun quatro 4x tuner</a> (for atsc)
 * hdmi network stream encoder (for cable tv)
-* esp8266 pair for re-transmitting the IR remote signal
+* <a href="https://github.com/hackwin/esp8266InfraredRemoteRepeater">esp8266 pair for re-transmitting the IR remote signal</a>
 
 # software
 1. The program zap2xml is scheduled to download XML electronic programming guides (EPG) every day.  It fetches two days worth of data at a time.
